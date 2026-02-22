@@ -16,11 +16,13 @@
 
 ### 環境変数
 
-`.env.example` をコピーして `.env.local` を作成し、必要な値を設定してください。
+`.env.example` をコピーして `.env` を作成し、必要な値を設定してください。
 
 ```bash
-cp .env.example .env.local
+cp .env.example .env
 ```
+
+> **Note**: Prisma CLI は `.env` を自動で読み込みます。Next.js の開発サーバーも `.env` を読み込むため、`.env.local` は不要です。
 
 必要な環境変数:
 
@@ -35,7 +37,7 @@ cp .env.example .env.local
 
 ### 開発環境の起動
 
-ローカル開発にはMongoDBが必要です。Dockerで起動できます：
+ローカル開発には PostgreSQL が必要です。Dockerで起動できます：
 
 ```bash
 docker run -d -p 5432:5432 -e POSTGRES_PASSWORD=password -e POSTGRES_DB=kazikashi postgres:17
@@ -45,7 +47,7 @@ docker run -d -p 5432:5432 -e POSTGRES_PASSWORD=password -e POSTGRES_DB=kazikash
 
 ```bash
 npm install
-npm run db:migrate  # マイグレーション実行
+npm run db:migrate  # マイグレーション実行（.env の DATABASE_URL を使用）
 npm run dev
 ```
 
