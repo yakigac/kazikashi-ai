@@ -1,0 +1,30 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentParameters.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "appName": {
+      "value": "kazikashi"
+    },
+    "environment": {
+      "value": "prod"
+    },
+    "authSecret": {
+      "value": "__AUTH_SECRET__"
+    },
+    "githubClientId": {
+      "value": "__GITHUB_CLIENT_ID__"
+    },
+    "githubClientSecret": {
+      "value": "__GITHUB_CLIENT_SECRET__"
+    },
+    "googleClientId": {
+      "value": "__GOOGLE_CLIENT_ID__"
+    },
+    "googleClientSecret": {
+      "value": "__GOOGLE_CLIENT_SECRET__"
+    },
+    "imageTag": {
+      "value": "latest"
+    }
+  }
+}
