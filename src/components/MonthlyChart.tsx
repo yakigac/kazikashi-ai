@@ -29,15 +29,7 @@ interface Props {
   month: number;
 }
 
-const COLORS = [
-  "#6366f1",
-  "#10b981",
-  "#f59e0b",
-  "#ef4444",
-  "#8b5cf6",
-  "#ec4899",
-  "#14b8a6",
-];
+const COLORS = ["#6366f1", "#10b981", "#f59e0b", "#ef4444", "#8b5cf6", "#ec4899", "#14b8a6"];
 
 export default function MonthlyChart({ records, year, month }: Props) {
   // Aggregate points by user
@@ -62,7 +54,9 @@ export default function MonthlyChart({ records, year, month }: Props) {
     return (
       <div className="flex flex-col items-center justify-center py-12 text-gray-400">
         <p className="text-4xl mb-3">📊</p>
-        <p>{year}年{month}月の記録はまだありません</p>
+        <p>
+          {year}年{month}月の記録はまだありません
+        </p>
       </div>
     );
   }
@@ -101,12 +95,7 @@ export default function MonthlyChart({ records, year, month }: Props) {
             formatter={(value: number | undefined) => [`${value ?? 0}pt`, "ポイント" as const]}
           />
           <Legend wrapperStyle={{ color: "#9ca3af", fontSize: 12 }} />
-          <Bar
-            dataKey="points"
-            name="ポイント"
-            radius={[6, 6, 0, 0]}
-            maxBarSize={80}
-          >
+          <Bar dataKey="points" name="ポイント" radius={[6, 6, 0, 0]} maxBarSize={80}>
             {chartData.map((_entry, index) => (
               <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
             ))}

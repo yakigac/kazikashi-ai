@@ -41,12 +41,10 @@ RUN chown nextjs:nodejs .next
 COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 
-# Copy prisma files needed at runtime
+# Copy Prisma schema and migrations for runtime migration
 COPY --from=builder /app/prisma ./prisma
+COPY --from=builder /app/prisma.config.ts ./prisma.config.ts
 COPY --from=builder /app/src/generated ./src/generated
-
-# Data directory for SQLite
-RUN mkdir -p /data && chown nextjs:nodejs /data
 
 USER nextjs
 
@@ -55,5 +53,5 @@ EXPOSE 3000
 ENV PORT=3000
 ENV HOSTNAME="0.0.0.0"
 
-# Run database migrations and start the app
+# Run database migrations then start the app
 CMD ["sh", "-c", "npx prisma migrate deploy && node server.js"]

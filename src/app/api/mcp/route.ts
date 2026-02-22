@@ -159,11 +159,7 @@ async function handleToolCall(
         content: [
           {
             type: "text",
-            text: JSON.stringify(
-              { year, month, stats: Object.values(statsByUser) },
-              null,
-              2
-            ),
+            text: JSON.stringify({ year, month, stats: Object.values(statsByUser) }, null, 2),
           },
         ],
       };
@@ -259,12 +255,7 @@ export async function POST(request: NextRequest) {
         });
       }
 
-      const result = await handleToolCall(
-        toolName,
-        toolArgs,
-        session.user.id,
-        user.familyId
-      );
+      const result = await handleToolCall(toolName, toolArgs, session.user.id, user.familyId);
 
       return NextResponse.json({ jsonrpc: "2.0", id, result });
     }

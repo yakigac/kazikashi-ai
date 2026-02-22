@@ -29,13 +29,20 @@ param googleClientSecret string = ''
 @description('Container image tag')
 param imageTag string = 'latest'
 
+@description('PostgreSQL administrator login')
+param pgAdminLogin string = 'kazikashiadmin'
+
+@description('PostgreSQL administrator password')
+@secure()
+param pgAdminPassword string
+
 var resourcePrefix = '${appName}-${environment}'
 var containerAppName = '${resourcePrefix}-app'
 var containerRegistryName = replace('${resourcePrefix}acr', '-', '')
 var logAnalyticsName = '${resourcePrefix}-logs'
 var containerAppEnvName = '${resourcePrefix}-env'
-var storageAccountName = replace('${resourcePrefix}st', '-', '')
-var fileShareName = 'database'
+var pgServerName = '${resourcePrefix}-pg'
+var pgDatabaseName = appName
 
 // Log Analytics Workspace
 resource logAnalytics 'Microsoft.OperationalInsights/workspaces@2022-10-01' = {
@@ -61,31 +68,50 @@ resource containerRegistry 'Microsoft.ContainerRegistry/registries@2023-07-01' =
   }
 }
 
-// Storage Account for SQLite persistent volume
-resource storageAccount 'Microsoft.Storage/storageAccounts@2023-01-01' = {
-  name: storageAccountName
+// Azure Database for PostgreSQL Flexible Server (managed PostgreSQL)
+resource postgresServer 'Microsoft.DBforPostgreSQL/flexibleServers@2024-08-01' = {
+  name: pgServerName
   location: location
-  kind: 'StorageV2'
   sku: {
-    name: 'Standard_LRS'
+    name: 'Standard_B1ms'
+    tier: 'Burstable'
   }
   properties: {
-    minimumTlsVersion: 'TLS1_2'
-    allowBlobPublicAccess: false
-    supportsHttpsTrafficOnly: true
+    administratorLogin: pgAdminLogin
+    administratorLoginPassword: pgAdminPassword
+    version: '17'
+    storage: {
+      storageSizeGB: 32
+    }
+    backup: {
+      backupRetentionDays: 7
+      geoRedundantBackup: 'Disabled'
+    }
+    highAvailability: {
+      mode: 'Disabled'
+    }
+    authConfig: {
+      activeDirectoryAuth: 'Disabled'
+      passwordAuth: 'Enabled'
+    }
   }
 }
 
-resource fileService 'Microsoft.Storage/storageAccounts/fileServices@2023-01-01' = {
-  parent: storageAccount
-  name: 'default'
+// PostgreSQL database
+resource postgresDatabase 'Microsoft.DBforPostgreSQL/flexibleServers/databases@2024-08-01' = {
+  parent: postgresServer
+  name: pgDatabaseName
 }
 
-resource fileShare 'Microsoft.Storage/storageAccounts/fileServices/shares@2023-01-01' = {
-  parent: fileService
-  name: fileShareName
+// Allow Azure services (Container Apps) to connect to PostgreSQL.
+// Note: 0.0.0.0 -> 0.0.0.0 is the Azure services range, not the open internet.
+// For stronger isolation, consider VNet integration with a private endpoint.
+resource postgresFirewallRule 'Microsoft.DBforPostgreSQL/flexibleServers/firewallRules@2024-08-01' = {
+  parent: postgresServer
+  name: 'AllowAzureServices'
   properties: {
-    shareQuota: 1
+    startIpAddress: '0.0.0.0'
+    endIpAddress: '0.0.0.0'
   }
 }
 
@@ -104,19 +130,7 @@ resource containerAppEnvironment 'Microsoft.App/managedEnvironments@2023-05-01' 
   }
 }
 
-// Storage link for persistent SQLite
-resource envStorage 'Microsoft.App/managedEnvironments/storages@2023-05-01' = {
-  parent: containerAppEnvironment
-  name: 'dbstorage'
-  properties: {
-    azureFile: {
-      accountName: storageAccount.name
-      accountKey: storageAccount.listKeys().keys[0].value
-      shareName: fileShareName
-      accessMode: 'ReadWrite'
-    }
-  }
-}
+var databaseUrl = 'postgresql://${pgAdminLogin}:${pgAdminPassword}@${postgresServer.properties.fullyQualifiedDomainName}:5432/${pgDatabaseName}?sslmode=require'
 
 // Container App
 resource containerApp 'Microsoft.App/containerApps@2023-05-01' = {
@@ -157,18 +171,11 @@ resource containerApp 'Microsoft.App/containerApps@2023-05-01' = {
         }
         {
           name: 'database-url'
-          value: 'file:/data/prod.db'
+          value: databaseUrl
         }
       ]
     }
     template: {
-      volumes: [
-        {
-          name: 'dbvolume'
-          storageName: 'dbstorage'
-          storageType: 'AzureFile'
-        }
-      ]
       containers: [
         {
           name: 'kazikashi-app'
@@ -211,12 +218,6 @@ resource containerApp 'Microsoft.App/containerApps@2023-05-01' = {
               value: 'production'
             }
           ]
-          volumeMounts: [
-            {
-              volumeName: 'dbvolume'
-              mountPath: '/data'
-            }
-          ]
         }
       ]
       scale: {
@@ -235,9 +236,11 @@ resource containerApp 'Microsoft.App/containerApps@2023-05-01' = {
       }
     }
   }
-  dependsOn: [envStorage]
+  dependsOn: [postgresDatabase, postgresFirewallRule]
 }
 
 output containerAppUrl string = 'https://${containerApp.properties.configuration.ingress.fqdn}'
 output containerRegistryServer string = containerRegistry.properties.loginServer
 output containerRegistryName string = containerRegistry.name
+output postgresServerName string = postgresServer.name
+output postgresFqdn string = postgresServer.properties.fullyQualifiedDomainName

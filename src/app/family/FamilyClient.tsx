@@ -153,9 +153,7 @@ export default function FamilyClient({ currentUserId }: Props) {
             <div className="flex items-center justify-between mb-4">
               <div>
                 <h2 className="text-xl font-bold text-white">{family.name}</h2>
-                <p className="text-sm text-gray-400">
-                  オーナー: {family.owner.name}
-                </p>
+                <p className="text-sm text-gray-400">オーナー: {family.owner.name}</p>
               </div>
               {isOwner && (
                 <span className="px-2 py-1 bg-indigo-900/50 text-indigo-300 text-xs rounded-full border border-indigo-700">
@@ -203,9 +201,7 @@ export default function FamilyClient({ currentUserId }: Props) {
           {/* Invite */}
           {isOwner && (
             <div className="bg-gray-800 rounded-2xl p-5 border border-gray-700">
-              <h2 className="text-base font-semibold text-white mb-2">
-                メンバーを招待
-              </h2>
+              <h2 className="text-base font-semibold text-white mb-2">メンバーを招待</h2>
               <p className="text-sm text-gray-400 mb-4">
                 招待リンクを作成して家族と共有してください（7日間有効）
               </p>

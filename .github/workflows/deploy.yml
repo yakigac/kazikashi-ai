@@ -1,4 +1,4 @@
-# Deploy workflow for Azure Container Apps
+# Deploy workflow for Azure Container Apps with Azure Database for PostgreSQL Flexible Server
 #
 # Required secrets (Settings > Secrets and variables > Actions):
 #   AZURE_CREDENTIALS         - Azure service principal JSON (az ad sp create-for-rbac --sdk-auth)
@@ -11,6 +11,7 @@
 #   AUTH_GITHUB_SECRET        - GitHub OAuth Client Secret
 #   AUTH_GOOGLE_ID            - Google OAuth Client ID
 #   AUTH_GOOGLE_SECRET        - Google OAuth Client Secret
+#   PG_ADMIN_PASSWORD         - PostgreSQL administrator password
 #
 # To enable: remove the leading '#' from every line in the 'on:' block and jobs below.
 
@@ -64,6 +65,7 @@
 #           docker push ${{ steps.meta.outputs.image }}
 #
 #       - name: Deploy Bicep infrastructure
+#         # Provisions: Container Apps + ACR + Azure Database for PostgreSQL Flexible Server
 #         uses: azure/arm-deploy@v2
 #         with:
 #           resourceGroupName: ${{ secrets.AZURE_RESOURCE_GROUP }}
@@ -77,6 +79,7 @@
 #             githubClientSecret=${{ secrets.AUTH_GITHUB_SECRET }}
 #             googleClientId=${{ secrets.AUTH_GOOGLE_ID }}
 #             googleClientSecret=${{ secrets.AUTH_GOOGLE_SECRET }}
+#             pgAdminPassword=${{ secrets.PG_ADMIN_PASSWORD }}
 #           failOnStdErr: false
 #
 #       - name: Show deployed URL

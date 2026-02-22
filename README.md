@@ -26,7 +26,7 @@ cp .env.example .env.local
 
 | 変数名 | 説明 |
 |--------|------|
-| `DATABASE_URL` | SQLiteデータベースURL（例: `file:./dev.db`）|
+| `DATABASE_URL` | PostgreSQL接続文字列（ローカル開発: `postgresql://postgres:password@localhost:5432/kazikashi`）|
 | `AUTH_SECRET` | NextAuth.jsのシークレットキー |
 | `AUTH_GITHUB_ID` | GitHub OAuth Client ID |
 | `AUTH_GITHUB_SECRET` | GitHub OAuth Client Secret |
@@ -35,9 +35,17 @@ cp .env.example .env.local
 
 ### 開発環境の起動
 
+ローカル開発にはMongoDBが必要です。Dockerで起動できます：
+
+```bash
+docker run -d -p 5432:5432 -e POSTGRES_PASSWORD=password -e POSTGRES_DB=kazikashi postgres:17
+```
+
+アプリの起動：
+
 ```bash
 npm install
-npm run db:migrate
+npm run db:migrate  # マイグレーション実行
 npm run dev
 ```
 
@@ -114,7 +122,8 @@ browser_take_screenshot
 | `npm run format:check` | フォーマットチェック |
 | `npm run test` | Jestによるテスト実行 |
 | `npm run test:ci` | CI用テスト実行 |
-| `npm run db:migrate` | データベースマイグレーション |
+| `npm run db:migrate` | データベースマイグレーション（開発）|
+| `npm run db:deploy` | データベースマイグレーション（本番）|
 | `npm run db:generate` | Prismaクライアント生成 |
 | `npm run db:studio` | Prisma Studio起動 |
 
@@ -190,9 +199,9 @@ docker push <registry-name>.azurecr.io/kazikashi-ai:latest
 
 - **フロントエンド**: Next.js 16 (App Router) + TypeScript + Tailwind CSS
 - **バックエンド**: Next.js API Routes
-- **データベース**: SQLite (開発) / Azure Files上のSQLite (本番)
+- **データベース**: PostgreSQL (開発) / Azure Database for PostgreSQL Flexible Server (本番)
 - **ORM**: Prisma 7
 - **認証**: NextAuth.js v5 (OAuth)
 - **グラフ**: Recharts
-- **インフラ**: Azure Container Apps + Azure Container Registry
+- **インフラ**: Azure Container Apps + Azure Container Registry + Azure Database for PostgreSQL
 - **IaC**: Azure Bicep

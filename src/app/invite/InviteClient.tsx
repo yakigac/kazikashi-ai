@@ -64,8 +64,7 @@ export default function InviteClient({ token }: Props) {
             {family ? (
               <>
                 <p className="text-gray-300 mb-6">
-                  <span className="font-semibold text-white">{family.name}</span>{" "}
-                  に招待されています
+                  <span className="font-semibold text-white">{family.name}</span> に招待されています
                 </p>
                 {error && (
                   <div className="bg-red-900/30 border border-red-500/30 text-red-300 px-4 py-2 rounded-lg text-sm mb-4">

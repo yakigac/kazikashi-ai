@@ -158,7 +158,10 @@ export default function ChoresClient() {
             + カテゴリ
           </button>
           <button
-            onClick={() => { cancelForm(); setShowAddChore(true); }}
+            onClick={() => {
+              cancelForm();
+              setShowAddChore(true);
+            }}
             className="px-3 py-2 text-sm bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl transition-colors"
           >
             + 家事を追加

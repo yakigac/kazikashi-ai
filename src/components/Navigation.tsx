@@ -52,15 +52,9 @@ export default function Navigation({ user }: Props) {
           <div className="flex items-center gap-2">
             {user.image && (
               // eslint-disable-next-line @next/next/no-img-element
-              <img
-                src={user.image}
-                alt={user.name ?? ""}
-                className="w-7 h-7 rounded-full"
-              />
+              <img src={user.image} alt={user.name ?? ""} className="w-7 h-7 rounded-full" />
             )}
-            <span className="text-sm text-gray-300 hidden sm:block">
-              {user.name ?? user.email}
-            </span>
+            <span className="text-sm text-gray-300 hidden sm:block">{user.name ?? user.email}</span>
             <button
               onClick={() => signOut({ callbackUrl: "/login" })}
               className="text-xs text-gray-400 hover:text-white px-2 py-1 rounded hover:bg-gray-700 transition-colors"

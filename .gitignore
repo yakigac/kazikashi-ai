@@ -41,14 +41,6 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
-/src/generated/prisma
-
-# SQLite database files
-*.db
-*.db-shm
-*.db-wal
-prisma/dev.db*
-
 # Prisma generated client (generated at build time)
 /src/generated/
 

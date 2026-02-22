@@ -7,7 +7,7 @@ generator client {
 }
 
 datasource db {
-  provider = "sqlite"
+  provider = "postgresql"
 }
 
 model User {
@@ -20,7 +20,7 @@ model User {
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
 
-  family        Family?       @relation(fields: [familyId], references: [id])
+  family        Family?       @relation("FamilyMembers", fields: [familyId], references: [id])
   ownedFamily   Family?       @relation("FamilyOwner")
   choreRecords  ChoreRecord[]
   accounts      Account[]
@@ -51,7 +51,8 @@ model Session {
   sessionToken String   @unique
   userId       String
   expires      DateTime
-  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model VerificationToken {
@@ -69,11 +70,11 @@ model Family {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  owner       User              @relation("FamilyOwner", fields: [ownerId], references: [id])
-  members     User[]
-  chores      Chore[]
-  categories  ChoreCategory[]
-  invitations FamilyInvitation[]
+  owner        User               @relation("FamilyOwner", fields: [ownerId], references: [id])
+  members      User[]             @relation("FamilyMembers")
+  chores       Chore[]
+  categories   ChoreCategory[]
+  invitations  FamilyInvitation[]
   choreRecords ChoreRecord[]
 }
 
@@ -98,7 +99,7 @@ model ChoreCategory {
 }
 
 model Chore {
-  id         String  @id @default(cuid())
+  id         String   @id @default(cuid())
   name       String
   points     Int
   categoryId String?
@@ -106,9 +107,9 @@ model Chore {
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
 
-  family      Family        @relation(fields: [familyId], references: [id], onDelete: Cascade)
-  category    ChoreCategory? @relation(fields: [categoryId], references: [id])
-  records     ChoreRecord[]
+  family   Family         @relation(fields: [familyId], references: [id], onDelete: Cascade)
+  category ChoreCategory? @relation(fields: [categoryId], references: [id])
+  records  ChoreRecord[]
 }
 
 model ChoreRecord {

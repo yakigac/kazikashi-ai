@@ -80,7 +80,9 @@ export default function HomeClient({ currentUserId }: Props) {
     }
 
     loadData();
-    return () => { cancelled = true; };
+    return () => {
+      cancelled = true;
+    };
   }, [year, month, refreshKey]);
 
   function handleSuccess() {
@@ -205,8 +207,7 @@ export default function HomeClient({ currentUserId }: Props) {
                   <div>
                     <p className="text-sm text-white">{record.chore.name}</p>
                     <p className="text-xs text-gray-400">
-                      {record.user.name} ·{" "}
-                      {new Date(record.date).toLocaleDateString("ja-JP")}
+                      {record.user.name} · {new Date(record.date).toLocaleDateString("ja-JP")}
                     </p>
                   </div>
                 </div>
