@@ -71,6 +71,37 @@ npm run format
 npm run format:check
 ```
 
+### スクリーンショット（Playwright MCP）
+
+UI変更を加えた際は、以下の主要画面のスクリーンショットを撮影し、PRのコメントや説明に添付してください。
+
+Playwright MCP を使ってスクリーンショットを撮影します。まず開発サーバーを起動してください：
+
+```bash
+npm run dev
+```
+
+撮影対象の主要画面：
+
+| 画面 | URL | 説明 |
+|------|-----|------|
+| ログイン画面 | `http://localhost:3000/login` | OAuthログインボタン |
+| ホーム画面 | `http://localhost:3000/` | 家事記録フォーム + 月次グラフ |
+| 家事管理画面 | `http://localhost:3000/chores` | 家事一覧・作成フォーム |
+| ファミリー管理画面 | `http://localhost:3000/family` | ファミリー情報・招待機能 |
+
+Playwright MCPを使ったスクリーンショット撮影手順：
+
+1. `browser_navigate` でターゲットURLに移動
+2. `browser_take_screenshot` でスクリーンショットを撮影
+3. 撮影した画像をPRコメントまたはdescriptionに貼り付ける
+
+例（ログイン画面）：
+```
+browser_navigate: http://localhost:3000/login
+browser_take_screenshot
+```
+
 ## スクリプト一覧
 
 | コマンド | 説明 |
