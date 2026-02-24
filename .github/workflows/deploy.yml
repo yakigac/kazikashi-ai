@@ -1,0 +1,92 @@
+# Deploy workflow for Azure Container Apps with Azure Database for PostgreSQL Flexible Server
+#
+# Required secrets (Settings > Secrets and variables > Actions):
+#   AZURE_CREDENTIALS         - Azure service principal JSON (az ad sp create-for-rbac --sdk-auth)
+#   AZURE_RESOURCE_GROUP      - Resource group name (e.g. rg-kazikashi)
+#   AZURE_CONTAINER_REGISTRY  - ACR login server (e.g. kazikashiproduction.azurecr.io)
+#   AZURE_REGISTRY_USERNAME   - ACR admin username
+#   AZURE_REGISTRY_PASSWORD   - ACR admin password
+#   AUTH_SECRET               - NextAuth secret
+#   AUTH_GITHUB_ID            - GitHub OAuth Client ID
+#   AUTH_GITHUB_SECRET        - GitHub OAuth Client Secret
+#   AUTH_GOOGLE_ID            - Google OAuth Client ID
+#   AUTH_GOOGLE_SECRET        - Google OAuth Client Secret
+#   PG_ADMIN_PASSWORD         - PostgreSQL administrator password
+#
+# To enable: remove the leading '#' from every line in the 'on:' block and jobs below.
+
+# on:
+#   push:
+#     branches: [main, master]
+#   workflow_dispatch:
+#     inputs:
+#       image_tag:
+#         description: "Docker image tag to deploy"
+#         required: false
+#         default: "latest"
+
+# jobs:
+#   deploy:
+#     name: Build & Deploy to Azure Container Apps
+#     runs-on: ubuntu-latest
+#     environment: production
+#
+#     steps:
+#       - uses: actions/checkout@v4
+#
+#       - name: Setup Node.js
+#         uses: actions/setup-node@v4
+#         with:
+#           node-version: "20"
+#           cache: "npm"
+#
+#       - name: Log in to Azure
+#         uses: azure/login@v2
+#         with:
+#           creds: ${{ secrets.AZURE_CREDENTIALS }}
+#
+#       - name: Log in to Azure Container Registry
+#         uses: azure/docker-login@v2
+#         with:
+#           login-server: ${{ secrets.AZURE_CONTAINER_REGISTRY }}
+#           username: ${{ secrets.AZURE_REGISTRY_USERNAME }}
+#           password: ${{ secrets.AZURE_REGISTRY_PASSWORD }}
+#
+#       - name: Set image tag
+#         id: meta
+#         run: |
+#           TAG=${{ github.event.inputs.image_tag || github.sha }}
+#           echo "tag=${TAG}" >> $GITHUB_OUTPUT
+#           echo "image=${{ secrets.AZURE_CONTAINER_REGISTRY }}/kazikashi-ai:${TAG}" >> $GITHUB_OUTPUT
+#
+#       - name: Build and push Docker image
+#         run: |
+#           docker build -t ${{ steps.meta.outputs.image }} .
+#           docker push ${{ steps.meta.outputs.image }}
+#
+#       - name: Deploy Bicep infrastructure
+#         # Provisions: Container Apps + ACR + Azure Database for PostgreSQL Flexible Server
+#         uses: azure/arm-deploy@v2
+#         with:
+#           resourceGroupName: ${{ secrets.AZURE_RESOURCE_GROUP }}
+#           template: infra/main.bicep
+#           parameters: >
+#             appName=kazikashi
+#             environment=prod
+#             imageTag=${{ steps.meta.outputs.tag }}
+#             authSecret=${{ secrets.AUTH_SECRET }}
+#             githubClientId=${{ secrets.AUTH_GITHUB_ID }}
+#             githubClientSecret=${{ secrets.AUTH_GITHUB_SECRET }}
+#             googleClientId=${{ secrets.AUTH_GOOGLE_ID }}
+#             googleClientSecret=${{ secrets.AUTH_GOOGLE_SECRET }}
+#             pgAdminPassword=${{ secrets.PG_ADMIN_PASSWORD }}
+#           failOnStdErr: false
+#
+#       - name: Show deployed URL
+#         run: |
+#           echo "Deployment complete."
+#           echo "App URL: $(az containerapp show \
+#             --name kazikashi-prod-app \
+#             --resource-group ${{ secrets.AZURE_RESOURCE_GROUP }} \
+#             --query properties.configuration.ingress.fqdn \
+#             --output tsv)"

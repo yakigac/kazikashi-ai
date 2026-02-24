@@ -1,0 +1,127 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  id            String    @id @default(cuid())
+  name          String?
+  email         String    @unique
+  emailVerified DateTime?
+  image         String?
+  familyId      String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  family        Family?       @relation("FamilyMembers", fields: [familyId], references: [id])
+  ownedFamily   Family?       @relation("FamilyOwner")
+  choreRecords  ChoreRecord[]
+  accounts      Account[]
+  sessions      Session[]
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String?
+  access_token      String?
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
+
+model Family {
+  id        String   @id @default(cuid())
+  name      String
+  ownerId   String   @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  owner        User               @relation("FamilyOwner", fields: [ownerId], references: [id])
+  members      User[]             @relation("FamilyMembers")
+  chores       Chore[]
+  categories   ChoreCategory[]
+  invitations  FamilyInvitation[]
+  choreRecords ChoreRecord[]
+}
+
+model FamilyInvitation {
+  id        String   @id @default(cuid())
+  familyId  String
+  token     String   @unique @default(cuid())
+  expiresAt DateTime
+  used      Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  family Family @relation(fields: [familyId], references: [id], onDelete: Cascade)
+}
+
+model ChoreCategory {
+  id       String @id @default(cuid())
+  name     String
+  familyId String
+
+  family Family  @relation(fields: [familyId], references: [id], onDelete: Cascade)
+  chores Chore[]
+}
+
+model Chore {
+  id         String   @id @default(cuid())
+  name       String
+  points     Int
+  categoryId String?
+  familyId   String
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  family   Family         @relation(fields: [familyId], references: [id], onDelete: Cascade)
+  category ChoreCategory? @relation(fields: [categoryId], references: [id])
+  records  ChoreRecord[]
+}
+
+model ChoreRecord {
+  id        String   @id @default(cuid())
+  choreId   String
+  userId    String
+  familyId  String
+  date      DateTime @default(now())
+  points    Int
+  createdAt DateTime @default(now())
+
+  chore  Chore  @relation(fields: [choreId], references: [id])
+  user   User   @relation(fields: [userId], references: [id])
+  family Family @relation(fields: [familyId], references: [id])
+}
